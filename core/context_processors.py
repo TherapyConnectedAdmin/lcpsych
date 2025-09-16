@@ -82,4 +82,5 @@ def seo(request):
         'site_base': site_base,
         'og_image_url': og_image_url,
         'sitemap_url': sitemap_url,
+    'GOOGLE_SITE_VERIFICATION': getattr(settings, 'GOOGLE_SITE_VERIFICATION', ''),
     }

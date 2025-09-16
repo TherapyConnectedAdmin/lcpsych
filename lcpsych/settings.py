@@ -40,6 +40,7 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 BASE_URL = env('BASE_URL', default='')
 # Whether robots are allowed to index. Defaults to True in production, False in DEBUG.
 ROBOTS_ALLOW = env.bool('ROBOTS_ALLOW', default=not DEBUG)
+GOOGLE_SITE_VERIFICATION = env('GOOGLE_SITE_VERIFICATION', default='')
 
 
 # Application definition
@@ -151,6 +152,11 @@ SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # Basic logging to console for Heroku
 LOGGING = {

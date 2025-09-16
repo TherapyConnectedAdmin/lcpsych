@@ -8,6 +8,7 @@
 <title>{{ seo_title }}</title>
 <meta name="description" content="{{ seo_description }}"/>
 <meta name="robots" content="{{ robots|default:'index, follow' }}"/>
+{% if GOOGLE_SITE_VERIFICATION %}<meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}"/>{% endif %}
 {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}"/>{% endif %}
 <meta property="og:locale" content="en_US"/>
 <meta property="og:type" content="website"/>

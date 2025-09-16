@@ -3,5 +3,5 @@ User-agent: *
 Disallow: /
 {% else %}
 Allow: /
-Sitemap: {{ sitemap_url }}
+Sitemap: {{ site_base }}/sitemap.xml
 {% endif %}

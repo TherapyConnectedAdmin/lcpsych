@@ -20,6 +20,9 @@ class CanonicalDomainMiddleware:
         # Only enforce in non-debug and when BASE_URL is configured
         if not settings.DEBUG and self._canonical_host:
             req_host = request.get_host()
+            # Allow Heroku preview/app host access without redirect for testing
+            if req_host.endswith('.herokuapp.com'):
+                return self.get_response(request)
             if req_host and req_host != self._canonical_host:
                 # Build absolute URL to canonical host, preserving path and query
                 scheme = 'https' if (self._parsed and self._parsed.scheme == 'https') else 'http'
