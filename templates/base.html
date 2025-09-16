@@ -25,20 +25,65 @@
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="{{ seo_title }}"/>
 <meta name="twitter:description" content="{{ seo_description }}"/>
-<meta name="twitter:image" content="/static/vendor/lcpsych/wp-content/uploads/2017/08/LC_logo_color.png"/>
+<meta name="twitter:image" content="{{ og_image_url }}"/>
 <meta name="twitter:label1" content="Written by"/>
 <meta name="twitter:data1" content="Wes Collins"/>
 <meta name="twitter:label2" content="Time to read"/>
 <meta name="twitter:data2" content="4 minutes"/>
 <meta http-equiv="x-dns-prefetch-control" content="off"/>
-<script type="application/ld+json" class="rank-math-schema-pro">{"@context":"https://schema.org","@graph":[{"@type":"Place","@id":"https://www.lcpsych.com/#place","geo":{"@type":"GeoCoordinates","latitude":"39.00894169135181","longitude":" -84.6472262217054"},"hasMap":"https://www.google.com/maps/search/?api=1&amp;query=39.00894169135181, -84.6472262217054","address":{"@type":"PostalAddress","streetAddress":"6900 Houston Rd. Building 500 Suite 11","addressLocality":"Florence","addressRegion":"Kentucky","postalCode":"41091","addressCountry":"US"}},{"@type":["LocalBusiness","Organization"],"@id":"https://www.lcpsych.com/#organization","name":"L+C Psychological Services","url":"https://www.lcpsych.com","email":"frontoffice@lcpsych.com","address":{"@type":"PostalAddress","streetAddress":"6900 Houston Rd. Building 500 Suite 11","addressLocality":"Florence","addressRegion":"Kentucky","postalCode":"41091","addressCountry":"US"},"logo":{"@type":"ImageObject","@id":"https://www.lcpsych.com/#logo","url":"https://www.lcpsych.com/wp-content/uploads/2017/08/WS_Mobile_LC_logo_color.png","contentUrl":"https://www.lcpsych.com/wp-content/uploads/2017/08/WS_Mobile_LC_logo_color.png","caption":"L+C Psychological Services","inLanguage":"en-US","width":"110","height":"91"},"openingHours":["Monday,Tuesday,Wednesday,Thursday 09:00-21:00","Friday 09:00-17:00","Saturday 09:00-14:00"],"description":"At L+C Psychological Services, we seek to provide an environment that is supportive and allows you to feel connected emotionally.
-
-We know that connections in life are what power our relationships in all aspects of our lives. Our hope is that you will experience these positive connections with our clinicians and gain the skills needed to improve all other connections in your life.
-
-L+C Psychological Services is proud to serve the greater Northern Kentucky and Cincinnati area providing psychological evaluation and treatment to adults, adolescents, and children in Florence, Kentucky. L+C Psychological Services was born from the vision of Dr. Kirk Little and Dr. Suzanne Collins following their work together for over a decade at Little Psychological Services.
-
-Our Mission
-Our mission at L+C Psychological Services is to provide a comfortable and safe environment for those who need to reconnect in their lives. We are dedicated psychologists and therapists providing guidance and support to clients seeking to heal and grow. We believe that we are able to connect with our clients to help them to be their best selves.","legalName":"L+C Psychological Services","location":{"@id":"https://www.lcpsych.com/#place"},"image":{"@id":"https://www.lcpsych.com/#logo"},"telephone":"8595254911"},{"@type":"WebSite","@id":"https://www.lcpsych.com/#website","url":"https://www.lcpsych.com","name":"L+C Psychological Services","alternateName":"LC Psych","publisher":{"@id":"https://www.lcpsych.com/#organization"},"inLanguage":"en-US","potentialAction":{"@type":"SearchAction","target":"https://www.lcpsych.com/?s={search_term_string}","query-input":"required name=search_term_string"}},{"@type":"ImageObject","@id":"https://www.lcpsych.com/wp-content/uploads/2017/08/WS_Mobile_LC_logo_color.png","url":"https://www.lcpsych.com/wp-content/uploads/2017/08/WS_Mobile_LC_logo_color.png","width":"200","height":"200","inLanguage":"en-US"},{"@type":"AboutPage","@id":"https://www.lcpsych.com/#webpage","url":"https://www.lcpsych.com/","name":"Mental Health Therapy in Northern Kentucky | L+C Psych","datePublished":"2025-04-30T01:24:25+00:00","dateModified":"2025-06-29T16:09:49+00:00","about":{"@id":"https://www.lcpsych.com/#organization"},"isPartOf":{"@id":"https://www.lcpsych.com/#website"},"primaryImageOfPage":{"@id":"https://www.lcpsych.com/wp-content/uploads/2017/08/WS_Mobile_LC_logo_color.png"},"inLanguage":"en-US"},{"@type":"HealthService","name":"Mental Health Therapy in Northern Kentucky | L+C Psych","description":"At L+C Psych our Psychologists, Therapists, and Counselors offer evaluations and therapy in Northern Kentucky and online throughout the state.","serviceType":"Psychotherapy, Counseling","offers":{"@type":"Offer","description":"In-person and online therapy sessions"},"mainEntityOfPage":{"@id":"https://www.lcpsych.com/#webpage"}}]}</script>
+<script type="application/ld+json">
+{
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": ["LocalBusiness", "Organization"],
+			"@id": "{{ site_base }}/#organization",
+			"name": "L+C Psychological Services",
+			"url": "{{ site_base }}/",
+			"email": "frontoffice@lcpsych.com",
+			"telephone": "8595254911",
+			"logo": {
+				"@type": "ImageObject",
+				"@id": "{{ site_base }}/#logo",
+				"url": "{{ og_image_url }}",
+				"contentUrl": "{{ og_image_url }}"
+			},
+			"image": {
+				"@id": "{{ site_base }}/#logo"
+			},
+			"address": {
+				"@type": "PostalAddress",
+				"streetAddress": "6900 Houston Rd. Building 500 Suite 11",
+				"addressLocality": "Florence",
+				"addressRegion": "KY",
+				"postalCode": "41091",
+				"addressCountry": "US"
+			},
+			"openingHours": [
+				"Mo-Th 09:00-21:00",
+				"Fr 09:00-17:00",
+				"Sa 09:00-14:00"
+			],
+			"description": "{{ seo_description }}"
+		},
+		{
+			"@type": "WebSite",
+			"@id": "{{ site_base }}/#website",
+			"url": "{{ site_base }}/",
+			"name": "L+C Psychological Services",
+			"publisher": { "@id": "{{ site_base }}/#organization" }
+		},
+		{
+			"@type": "WebPage",
+			"@id": "{{ canonical_url }}#webpage",
+			"url": "{{ canonical_url }}",
+			"name": "{{ seo_title }}",
+			"isPartOf": { "@id": "{{ site_base }}/#website" },
+			"primaryImageOfPage": { "@id": "{{ site_base }}/#logo" }
+		}
+	]
+}
+</script>
 <link rel='dns-prefetch' href='//www.lcpsych.com'/>
 <link rel='dns-prefetch' href='//www.googletagmanager.com'/>
 <link rel='dns-prefetch' href='//pagead2.googlesyndication.com'/>
