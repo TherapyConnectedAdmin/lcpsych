@@ -16,7 +16,8 @@ node_modules/
 *.log
 
 # Media
-media/
+# Ignore only top-level user-uploaded media, not static/media assets
+/media/
 
 # VS Code
 .vscode/
