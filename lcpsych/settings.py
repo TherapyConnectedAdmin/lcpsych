@@ -35,6 +35,11 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+# SEO / Site
+# Public site base URL, e.g. https://www.yourdomain.com (no trailing slash)
+BASE_URL = env('BASE_URL', default='')
+# Whether robots are allowed to index. Defaults to True in production, False in DEBUG.
+ROBOTS_ALLOW = env.bool('ROBOTS_ALLOW', default=not DEBUG)
 
 
 # Application definition
@@ -75,6 +80,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.nav',
+                'core.context_processors.seo',
             ],
         },
     },

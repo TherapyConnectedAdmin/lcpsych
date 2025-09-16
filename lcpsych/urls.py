@@ -35,6 +35,10 @@ urlpatterns = [
         template_name='location.xml',
         content_type='application/xml'
     ), name='location_xml'),
+    path('robots.txt', TemplateView.as_view(
+        template_name='robots.txt',
+        content_type='text/plain'
+    ), name='robots_txt'),
     path('', include('core.urls')),
 ]
 if settings.DEBUG:

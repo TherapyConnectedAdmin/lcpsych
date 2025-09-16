@@ -1,0 +1,7 @@
+User-agent: *
+{% if robots == 'noindex, nofollow' %}
+Disallow: /
+{% else %}
+Allow: /
+Sitemap: {{ sitemap_url }}
+{% endif %}

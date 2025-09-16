@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="profile" href="https://gmpg.org/xfn/11">
 <style>img:is([sizes="auto" i], [sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}</style>
-<title>Mental Health Therapy in Northern Kentucky | L+C Psych</title>
-<meta name="description" content="At L+C Psych our Psychologists, Therapists, and Counselors offer evaluations and therapy in Northern Kentucky and online throughout the state."/>
-<meta name="robots" content="follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large"/>
-<link rel="canonical" href="https://www.lcpsych.com/"/>
+<title>{{ seo_title }}</title>
+<meta name="description" content="{{ seo_description }}"/>
+<meta name="robots" content="{{ robots|default:'index, follow' }}"/>
+{% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}"/>{% endif %}
 <meta property="og:locale" content="en_US"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="Mental Health Therapy in Northern Kentucky | L+C Psych"/>
-<meta property="og:description" content="At L+C Psych our Psychologists, Therapists, and Counselors offer evaluations and therapy in Northern Kentucky and online throughout the state."/>
-<meta property="og:url" content="https://www.lcpsych.com/"/>
+<meta property="og:title" content="{{ seo_title }}"/>
+<meta property="og:description" content="{{ seo_description }}"/>
+<meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}"/>
 <meta property="og:site_name" content="L+C Psychological Services"/>
 <meta property="og:updated_time" content="2025-06-29T16:09:49+00:00"/>
-<meta property="og:image" content="/static/vendor/lcpsych/wp-content/uploads/2017/08/LC_logo_color.png"/>
-<meta property="og:image:secure_url" content="/static/vendor/lcpsych/wp-content/uploads/2017/08/LC_logo_color.png"/>
+<meta property="og:image" content="{{ og_image_url }}"/>
+<meta property="og:image:secure_url" content="{{ og_image_url }}"/>
 <meta property="og:image:width" content="630"/>
 <meta property="og:image:height" content="519"/>
 <meta property="og:image:alt" content="L+C Psychological Services"/>
 <meta property="og:image:type" content="image/png"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="Mental Health Therapy in Northern Kentucky | L+C Psych"/>
-<meta name="twitter:description" content="At L+C Psych our Psychologists, Therapists, and Counselors offer evaluations and therapy in Northern Kentucky and online throughout the state."/>
+<meta name="twitter:title" content="{{ seo_title }}"/>
+<meta name="twitter:description" content="{{ seo_description }}"/>
 <meta name="twitter:image" content="/static/vendor/lcpsych/wp-content/uploads/2017/08/LC_logo_color.png"/>
 <meta name="twitter:label1" content="Written by"/>
 <meta name="twitter:data1" content="Wes Collins"/>
