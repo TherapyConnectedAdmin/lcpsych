@@ -19,5 +19,10 @@ node_modules/
 # Ignore only top-level user-uploaded media, not static/media assets
 /media/
 
+# Localized assets housekeeping
+# Ignore redundant vendor mirrors and stray static bundles under static/media
+static/media/static/
+static/media/lcpsych/
+
 # VS Code
 .vscode/
