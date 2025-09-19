@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import select_template
 import re
 from pathlib import Path
-from .models import Page, Post
+from .models import Page, Post, PublishStatus
 
 
 def home(request):
@@ -33,6 +33,9 @@ def home(request):
 
 def page_detail(request, path: str):
 	page = get_object_or_404(Page, path=path.strip('/'))
+	# Gate unpublished content: allow staff to preview drafts; 404 for others
+	if page.status != PublishStatus.PUBLISH and not request.user.is_staff:
+		raise Http404()
 	# Prepare per-page SEO overrides
 	seo_title = page.seo_title or page.title
 	# Prefer explicit seo_description; else derive from excerpt_html (strip tags lightly)
@@ -50,6 +53,9 @@ def page_detail(request, path: str):
 		"core/page_detail.html",
 	]
 	tpl = select_template(candidates)
+	# OG type and last modified
+	lastmod_dt = page.modified_at or page.published_at or page.updated
+	lastmod_iso = lastmod_dt.isoformat() if lastmod_dt else None
 	ctx = {
 		'page': page,
 		'title': page.title,
@@ -58,12 +64,18 @@ def page_detail(request, path: str):
 		'seo_description': seo_description,
 		'seo_keywords': page.seo_keywords,
 		'og_image_url': page.seo_image_url or None,
+		'og_type': 'article',
+		'lastmod_iso': lastmod_iso,
 	}
 	return HttpResponse(tpl.render(ctx, request))
 
 
 def post_list(request):
-	posts = Post.objects.all()[:50]
+	# Show only published posts to public; staff can see drafts in list
+	qs = Post.objects.all()
+	if not request.user.is_staff:
+		qs = qs.filter(status=PublishStatus.PUBLISH)
+	posts = qs[:50]
 	return render(request, 'core/post_list.html', {
 		'posts': posts,
 	})
@@ -71,6 +83,8 @@ def post_list(request):
 
 def post_detail(request, slug: str):
 	post = get_object_or_404(Post, slug=slug)
+	if post.status != PublishStatus.PUBLISH and not request.user.is_staff:
+		raise Http404()
 	from django.utils.html import strip_tags
 	def _truncate(s, n=155):
 		s = (s or '').strip()
@@ -83,6 +97,9 @@ def post_detail(request, slug: str):
 		"core/post_detail.html",
 	]
 	tpl = select_template(candidates)
+	# OG type and last modified
+	lastmod_dt = post.modified_at or post.published_at or post.updated
+	lastmod_iso = lastmod_dt.isoformat() if lastmod_dt else None
 	ctx = {
 		'post': post,
 		'content_html': mark_safe(post.content_html),
@@ -90,8 +107,38 @@ def post_detail(request, slug: str):
 		'seo_description': seo_description,
 		'seo_keywords': post.seo_keywords,
 		'og_image_url': post.seo_image_url or None,
+		'og_type': 'article',
+		'lastmod_iso': lastmod_iso,
 	}
 	return HttpResponse(tpl.render(ctx, request))
+
+
+def search(request):
+	"""Simple site search across Page and Post titles and content_html."""
+	from django.db.models import Q
+	q = (request.GET.get('q') or '').strip()
+	pages = posts = []
+	if q:
+		pages_qs = Page.objects.filter(
+			Q(title__icontains=q) | Q(content_html__icontains=q)
+		)
+		posts_qs = Post.objects.filter(
+			Q(title__icontains=q) | Q(content_html__icontains=q)
+		)
+		if not request.user.is_staff:
+			pages_qs = pages_qs.filter(status=PublishStatus.PUBLISH)
+			posts_qs = posts_qs.filter(status=PublishStatus.PUBLISH)
+		pages = list(pages_qs[:20])
+		posts = list(posts_qs[:20])
+	ctx = {
+		'q': q,
+		'pages': pages,
+		'posts': posts,
+		'seo_title': f"Search results for '{q}'" if q else "Search",
+		'seo_description': "Search pages and articles from L+C Psychological Services.",
+		'og_type': 'website',
+	}
+	return render(request, 'core/search.html', ctx)
 
 # Create your views here.
 

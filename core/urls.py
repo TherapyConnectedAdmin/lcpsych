@@ -1,11 +1,14 @@
 from django.urls import path, re_path
 from . import views
+from .feeds import LatestPostsFeed
 
 urlpatterns = [
     path('', views.home, name='home'),
     path('_preview/', views.import_preview, name='import_preview'),
     path('blog/', views.post_list, name='post_list'),
+    path('blog/feed/', LatestPostsFeed(), name='post_feed'),
     path('blog/<slug:slug>/', views.post_detail, name='post_detail'),
+    path('search/', views.search, name='search'),
     # Local stubs for WordPress endpoints referenced by copied scripts
     path('__stub/wp-admin/admin-ajax.php', views.wp_admin_ajax_stub, name='wp_admin_ajax_stub'),
     path('__stub/wp-json/', views.wp_json_stub, name='wp_json_root_stub'),

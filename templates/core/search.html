@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seo_title }}{% endblock %}
+
+{% block content %}
+<section class="max-w-3xl mx-auto p-6">
+  <h1 class="text-3xl font-bold mb-4">Search</h1>
+  <form action="/search/" method="get" class="mb-6">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search…" class="border rounded px-3 py-2 w-2/3"/>
+    <button class="bg-indigo-600 text-white px-4 py-2 rounded">Search</button>
+  </form>
+
+  {% if q %}
+    <h2 class="text-xl font-semibold mt-8 mb-2">Pages</h2>
+    {% if pages %}
+      <ul class="list-disc ml-6">
+        {% for p in pages %}
+          <li><a class="underline" href="/{% if p.path %}{{ p.path }}{% endif %}">{{ p.title }}</a></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No pages found.</p>
+    {% endif %}
+
+    <h2 class="text-xl font-semibold mt-8 mb-2">Blog Posts</h2>
+    {% if posts %}
+      <ul class="list-disc ml-6">
+        {% for post in posts %}
+          <li><a class="underline" href="/blog/{{ post.slug }}/">{{ post.title }}</a></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No blog posts found.</p>
+    {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

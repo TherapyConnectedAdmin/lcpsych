@@ -2,6 +2,34 @@
 
 {% block title %}{{ seo_title|default:post.title }}{% endblock %}
 
+{% block head_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Home","item":"{{ site_base }}/"},
+    {"@type":"ListItem","position":2,"name":"Blog","item":"{{ site_base }}/blog/"},
+    {"@type":"ListItem","position":3,"name":"{{ post.title }}","item":"{{ canonical_url }}"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ seo_title|default:post.title }}",
+  "description": "{{ seo_description }}",
+  "datePublished": "{{ post.published_at|date:'c' }}",
+  "dateModified": "{{ lastmod_iso|default:post.modified_at|date:'c' }}",
+  "mainEntityOfPage": {"@type":"WebPage","@id":"{{ canonical_url }}"},
+  "image": ["{{ og_image_url }}"],
+  "author": {"@type":"Organization","name":"L+C Psychological Services"},
+  "publisher": {"@type":"Organization","name":"L+C Psychological Services","logo":{"@type":"ImageObject","url":"{{ og_image_url }}"}}
+}
+</script>
+{% endblock %}
+
 {% block content %}
   {# If a slug-specific template exists under templates/posts/, views will render it instead. #}
   <article class="post">
