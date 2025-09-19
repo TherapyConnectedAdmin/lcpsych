@@ -3,22 +3,63 @@ from django.utils.safestring import mark_safe
 from django.http import HttpResponse, Http404
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import select_template
 import re
 from pathlib import Path
 from .models import Page, Post
 
 
 def home(request):
-	# Render the simple home page that extends base.html
-	return render(request, 'home.html')
+	# Render the home page and, if available, apply SEO overrides from the Page with path='home'
+	seo_ctx = {}
+	try:
+		page = Page.objects.get(path='home')
+		from django.utils.html import strip_tags
+		def _truncate(s, n=155):
+			s = (s or '').strip()
+			return (s[: n - 1] + '…') if len(s) > n else s
+		seo_ctx = {
+			'seo_title': page.seo_title or page.title,
+			'seo_description': page.seo_description or _truncate(strip_tags(page.excerpt_html or '')),
+			'seo_keywords': page.seo_keywords,
+			'og_image_url': page.seo_image_url or None,
+			# Expose a title the homepage template/partials can use for H1
+			'page_title': page.title,
+		}
+	except Page.DoesNotExist:
+		pass
+	return render(request, 'home.html', seo_ctx)
 
 
 def page_detail(request, path: str):
 	page = get_object_or_404(Page, path=path.strip('/'))
-	return render(request, 'core/page_detail.html', {
+	# Prepare per-page SEO overrides
+	seo_title = page.seo_title or page.title
+	# Prefer explicit seo_description; else derive from excerpt_html (strip tags lightly)
+	from django.utils.html import strip_tags
+	derived_desc = strip_tags(page.excerpt_html).strip()
+	# SERP-friendly truncation ~155 chars
+	def _truncate(s, n=155):
+		s = (s or '').strip()
+		return (s[: n - 1] + '…') if len(s) > n else s
+	seo_description = page.seo_description or _truncate(derived_desc)
+	# Prefer a template based on path/slug if present; else fall back to generic
+	candidates = [
+		f"pages/{page.path}.html",
+		f"pages/{page.slug}.html",
+		"core/page_detail.html",
+	]
+	tpl = select_template(candidates)
+	ctx = {
+		'page': page,
 		'title': page.title,
 		'content_html': mark_safe(page.content_html),
-	})
+		'seo_title': seo_title,
+		'seo_description': seo_description,
+		'seo_keywords': page.seo_keywords,
+		'og_image_url': page.seo_image_url or None,
+	}
+	return HttpResponse(tpl.render(ctx, request))
 
 
 def post_list(request):
@@ -30,10 +71,27 @@ def post_list(request):
 
 def post_detail(request, slug: str):
 	post = get_object_or_404(Post, slug=slug)
-	return render(request, 'core/post_detail.html', {
+	from django.utils.html import strip_tags
+	def _truncate(s, n=155):
+		s = (s or '').strip()
+		return (s[: n - 1] + '…') if len(s) > n else s
+	derived_desc = strip_tags(post.excerpt_html or post.content_html).strip()
+	seo_title = post.seo_title or post.title
+	seo_description = post.seo_description or _truncate(derived_desc)
+	candidates = [
+		f"posts/{post.slug}.html",
+		"core/post_detail.html",
+	]
+	tpl = select_template(candidates)
+	ctx = {
 		'post': post,
 		'content_html': mark_safe(post.content_html),
-	})
+		'seo_title': seo_title,
+		'seo_description': seo_description,
+		'seo_keywords': post.seo_keywords,
+		'og_image_url': post.seo_image_url or None,
+	}
+	return HttpResponse(tpl.render(ctx, request))
 
 # Create your views here.
 

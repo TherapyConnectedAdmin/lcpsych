@@ -1,0 +1,5 @@
+/* Force show admin form rows and labels if a theme hides them */
+.inline-group .tabular tr, .form-row, .aligned .form-row { display: block !important; }
+.aligned .form-row > div, .aligned .form-row > fieldset { display: block !important; }
+.aligned label { display: inline-block !important; }
+fieldset.collapse { display: block !important; }

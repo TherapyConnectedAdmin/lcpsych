@@ -1,5 +1,9 @@
 from django.db import models
 from django.utils.text import slugify
+class PublishStatus(models.TextChoices):
+	DRAFT = 'draft', 'Draft'
+	PUBLISH = 'publish', 'Published'
+
 
 
 class Timestamped(models.Model):
@@ -34,11 +38,16 @@ class Page(Timestamped):
 	title = models.CharField(max_length=500)
 	slug = models.SlugField(max_length=255)
 	path = models.CharField(max_length=1000, unique=True, help_text="Slash-separated path without leading/trailing slash")
+	# Optional per-page SEO overrides
+	seo_title = models.CharField(max_length=255, blank=True, help_text="Overrides the page title tag if set")
+	seo_description = models.CharField(max_length=300, blank=True, help_text="Overrides meta description if set")
+	seo_keywords = models.CharField(max_length=500, blank=True, help_text="Comma-separated keywords (optional; most search engines ignore this)")
+	seo_image_url = models.URLField(blank=True, help_text="Absolute URL for social share image (og:image). Leave blank to use default.")
 	excerpt_html = models.TextField(blank=True)
 	content_html = models.TextField()
 	parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='children')
 	menu_order = models.IntegerField(default=0)
-	status = models.CharField(max_length=50, default='publish')
+	status = models.CharField(max_length=50, choices=PublishStatus.choices, default=PublishStatus.PUBLISH)
 	original_url = models.URLField(blank=True)
 	published_at = models.DateTimeField(null=True, blank=True)
 	modified_at = models.DateTimeField(null=True, blank=True)
@@ -72,7 +81,7 @@ class Post(Timestamped):
 	slug = models.SlugField(max_length=255, unique=True)
 	excerpt_html = models.TextField(blank=True)
 	content_html = models.TextField()
-	status = models.CharField(max_length=50, default='publish')
+	status = models.CharField(max_length=50, choices=PublishStatus.choices, default=PublishStatus.PUBLISH)
 	original_url = models.URLField(blank=True)
 	published_at = models.DateTimeField(null=True, blank=True)
 	modified_at = models.DateTimeField(null=True, blank=True)
@@ -80,6 +89,11 @@ class Post(Timestamped):
 	tags = models.ManyToManyField(Tag, blank=True)
 	wp_id = models.IntegerField(db_index=True)
 	wp_type = models.CharField(max_length=50, default='post')
+	# Optional per-post SEO overrides
+	seo_title = models.CharField(max_length=255, blank=True, help_text="Overrides the post title tag if set")
+	seo_description = models.CharField(max_length=300, blank=True, help_text="Overrides meta description if set")
+	seo_keywords = models.CharField(max_length=500, blank=True, help_text="Comma-separated keywords (optional; most search engines ignore this)")
+	seo_image_url = models.URLField(blank=True, help_text="Absolute URL for social share image (og:image). Leave blank to use default.")
 
 	class Meta:
 		unique_together = (('wp_id', 'wp_type'),)
@@ -89,17 +103,6 @@ class Post(Timestamped):
 		return self.title
 
 
-class NavItem(Timestamped):
-	title = models.CharField(max_length=255)
-	url = models.CharField(max_length=1000)
-	order = models.IntegerField(default=0)
-	parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children')
-	is_external = models.BooleanField(default=False)
-
-	class Meta:
-		ordering = ['order', 'title']
-
-	def __str__(self):
-		return self.title
+## NavItem removed – navigation is managed by static templates now.
 
 # Create your models here.

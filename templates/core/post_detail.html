@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seo_title|default:post.title }}{% endblock %}
+
+{% block content %}
+  {# If a slug-specific template exists under templates/posts/, views will render it instead. #}
+  <article class="post">
+    <h1>{{ post.title }}</h1>
+    <div class="content">{{ content_html|safe }}</div>
+  </article>
+{% endblock %}
