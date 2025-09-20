@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=200)),
                 ('slug', models.SlugField(max_length=200, unique=True)),
                 ('excerpt', models.CharField(blank=True, max_length=500)),
-                ('image_url', models.URLField(blank=True, help_text='Absolute or /static relative URL for card background/image')),
+                ('image_url', models.URLField(max_length=1000, blank=True, help_text='Absolute or /static relative URL for card background/image')),
                 ('order', models.PositiveIntegerField(default=0, help_text='Controls display ordering on homepage')),
                 ('status', models.CharField(choices=[('draft', 'Draft'), ('publish', 'Published')], default='publish', max_length=50)),
                 ('page', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='service_cards', to='core.page')),

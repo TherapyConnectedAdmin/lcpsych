@@ -117,7 +117,7 @@ class Service(Timestamped):
 	title = models.CharField(max_length=200)
 	slug = models.SlugField(max_length=200, unique=True)
 	excerpt = models.TextField(blank=True)
-	image_url = models.URLField(blank=True, help_text="Absolute or /static relative URL for card background/image")
+	image_url = models.URLField(max_length=1000, blank=True, help_text="Absolute or /static relative URL for card background/image")
 	page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='service_cards')
 	order = models.PositiveIntegerField(default=0, help_text="Controls display ordering on homepage")
 	status = models.CharField(max_length=50, choices=PublishStatus.choices, default=PublishStatus.PUBLISH)
