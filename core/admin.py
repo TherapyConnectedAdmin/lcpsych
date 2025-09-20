@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django import forms
 from django.conf import settings
 from .models import Page, Post, Category, Tag, Service
@@ -12,10 +13,14 @@ class PageAdminForm(forms.ModelForm):
             'seo_title', 'seo_description', 'seo_keywords', 'seo_image_url',
             # Core
             'title', 'slug', 'path', 'status',
+            # Content
+            'excerpt_html', 'content_html',
         ]
         widgets = {
             'seo_description': forms.Textarea(attrs={'rows': 3}),
             'seo_keywords': forms.Textarea(attrs={'rows': 3}),
+            'excerpt_html': CKEditorWidget(),
+            'content_html': CKEditorWidget(),
         }
 
 
@@ -33,6 +38,9 @@ class PageAdmin(admin.ModelAdmin):
         }),
         ("Page routing", {
             'fields': ("title", "slug", "path", "status")
+        }),
+        ("Content", {
+            'fields': ("excerpt_html", "content_html"),
         }),
         ("Publishing", {
             'fields': ("published_at", "modified_at")
@@ -212,9 +220,48 @@ class ServiceAdmin(admin.ModelAdmin):
     list_filter = ("status",)
     ordering = ("order", "title")
 
+    readonly_fields = ("linked_page", "page_edit_link", "page_excerpt_preview", "page_content_preview")
+    fieldsets = (
+        ("Service", {
+            'fields': ("title", "slug", "status", "order", "image_url", "excerpt"),
+        }),
+        ("Linked Page", {
+            'fields': ("page", "linked_page", "page_edit_link", "page_excerpt_preview", "page_content_preview"),
+        }),
+    )
+
     def linked_page(self, obj: Service):
         return f"/{obj.page.path}" if obj and obj.page else "—"
     linked_page.short_description = "Detail URL"
+
+    def page_edit_link(self, obj: Service):
+        if obj and getattr(obj, 'page_id', None):
+            title = obj.page.title if obj.page else 'Page'
+            return format_html('<a href="/admin/core/page/{}/change/" target="_blank">Edit Page “{}”</a>', obj.page_id, title)
+        return "—"
+    page_edit_link.short_description = "Edit linked Page"
+
+    def page_excerpt_preview(self, obj: Service | None):
+        """Plain-text preview derived from the linked Page's excerpt/content."""
+        import re
+        if not obj or not getattr(obj, 'page', None):
+            return ''
+        source = getattr(obj.page, 'excerpt_html', '') or getattr(obj.page, 'content_html', '') or ''
+        txt = re.sub(r"<[^>]+>", "", source).strip()
+        return (txt[:157] + '…') if len(txt) > 158 else txt
+    page_excerpt_preview.short_description = "Derived description preview"
+
+    def page_content_preview(self, obj: Service | None):
+        """HTML preview of the linked Page content (scrollable box)."""
+        if not obj or not getattr(obj, 'page', None):
+            return ''
+        html = getattr(obj.page, 'content_html', '') or ''
+        if not html:
+            return ''
+        # Wrap in a scrollable container to avoid overlong admin pages
+        container = '<div style="max-height:240px; overflow:auto; border:1px solid #ddd; padding:8px; border-radius:6px; background:#fff">{}</div>'
+        return format_html(container, mark_safe(html))
+    page_content_preview.short_description = "Page content preview"
 
 
 @admin.register(Category)

@@ -70,6 +70,21 @@ def page_detail(request, path: str):
 		'og_type': 'article',
 		'lastmod_iso': lastmod_iso,
 	}
+	# Service detail enhancements: attach related Service and image
+	service_obj = None
+	service_image_url = None
+	if page.path.startswith('services/') and page.path != 'services':
+		try:
+			service_obj = Service.objects.filter(page=page).order_by('order', 'title').first()
+		except Exception:
+			service_obj = None
+		if service_obj and getattr(service_obj, 'image_url', None):
+			service_image_url = service_obj.image_url
+		ctx['service'] = service_obj
+		ctx['service_image_url'] = service_image_url
+		# If no explicit SEO image, prefer the service image for social previews
+		if not ctx.get('og_image_url') and service_image_url:
+			ctx['og_image_url'] = service_image_url
 	# If this is the Services index page, provide the services queryset for the template
 	if page.path == 'services':
 		from django.db.models import Q

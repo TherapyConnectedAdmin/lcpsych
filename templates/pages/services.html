@@ -68,7 +68,7 @@ input.input-brand:focus-visible {
             />
             <button type="submit" class="btn-soft-focus rounded-xl bg-[#3C9C64] text-white font-semibold py-3 px-4 transition-colors hover:bg-[#92DCE5] hover:text-[#005F6B] focus-visible:bg-[#92DCE5] focus-visible:text-[#005F6B]">Search</button>
             {% if request.GET.q %}
-              <a href="/services/" class="btn-soft-focus rounded-xl border border-white/35 text-white/90 font-semibold py-3 px-4 hover:bg-white/10 focus-visible:bg-white/20">Clear</a>
+              <a href="/services/" class="btn-soft-focus rounded-xl border border-white/35 text-white/90 font-semibold py-3 px-4 transition-colors hover:bg-[#92DCE5] hover:text-[#005F6B] hover:border-transparent focus-visible:bg-[#92DCE5] focus-visible:text-[#005F6B] focus-visible:border-transparent">Clear</a>
             {% endif %}
           </div>
         </form>
