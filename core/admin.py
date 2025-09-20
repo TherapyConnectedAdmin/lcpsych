@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django import forms
 from django.conf import settings
-from .models import Page, Post, Category, Tag
+from .models import Page, Post, Category, Tag, Service
+from ckeditor.widgets import CKEditorWidget
 class PageAdminForm(forms.ModelForm):
     class Meta:
         model = Page
@@ -192,6 +193,28 @@ class PostAdmin(admin.ModelAdmin):
             obj.published_at = now
         obj.modified_at = now
         super().save_model(request, obj, form, change)
+
+
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    class ServiceAdminForm(forms.ModelForm):
+        class Meta:
+            model = Service
+            fields = ['title', 'slug', 'excerpt', 'image_url', 'page', 'order', 'status']
+            widgets = {
+                'excerpt': CKEditorWidget(),
+            }
+
+    form = ServiceAdminForm
+    list_display = ("title", "slug", "order", "status", "linked_page")
+    list_editable = ("order", "status")
+    search_fields = ("title", "excerpt", "slug", "page__title", "page__path")
+    list_filter = ("status",)
+    ordering = ("order", "title")
+
+    def linked_page(self, obj: Service):
+        return f"/{obj.page.path}" if obj and obj.page else "—"
+    linked_page.short_description = "Detail URL"
 
 
 @admin.register(Category)

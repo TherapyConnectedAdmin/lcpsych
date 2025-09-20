@@ -5,6 +5,9 @@ module.exports = {
     "./**/*.html",
     "./core/**/*.py"
   ],
+  corePlugins: {
+    preflight: false,
+  },
   theme: {
     extend: {
       colors: {

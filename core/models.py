@@ -106,3 +106,29 @@ class Post(Timestamped):
 ## NavItem removed – navigation is managed by static templates now.
 
 # Create your models here.
+
+
+class Service(Timestamped):
+	"""Homepage Services card model bridging to a detailed Page.
+
+	Stores card-specific fields (title, blurb, image) and links to the
+	canonical Page for the service detail view under /services/<slug>/.
+	"""
+	title = models.CharField(max_length=200)
+	slug = models.SlugField(max_length=200, unique=True)
+	excerpt = models.TextField(blank=True)
+	image_url = models.URLField(blank=True, help_text="Absolute or /static relative URL for card background/image")
+	page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='service_cards')
+	order = models.PositiveIntegerField(default=0, help_text="Controls display ordering on homepage")
+	status = models.CharField(max_length=50, choices=PublishStatus.choices, default=PublishStatus.PUBLISH)
+
+	class Meta:
+		ordering = ["order", "title"]
+
+	def __str__(self):
+		return self.title
+
+	def save(self, *args, **kwargs):
+		if not self.slug:
+			self.slug = slugify(self.title)[:200]
+		super().save(*args, **kwargs)

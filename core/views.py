@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import select_template
 import re
 from pathlib import Path
-from .models import Page, Post, PublishStatus
+from .models import Page, Post, PublishStatus, Service
 
 
 def home(request):
@@ -28,7 +28,10 @@ def home(request):
 		}
 	except Page.DoesNotExist:
 		pass
-	return render(request, 'home.html', seo_ctx)
+	# Services cards for homepage: only published, ordered
+	services = list(Service.objects.filter(status=PublishStatus.PUBLISH).select_related('page').order_by('order', 'title'))
+	ctx = {**seo_ctx, 'services': services}
+	return render(request, 'home.html', ctx)
 
 
 def page_detail(request, path: str):
@@ -67,6 +70,19 @@ def page_detail(request, path: str):
 		'og_type': 'article',
 		'lastmod_iso': lastmod_iso,
 	}
+	# If this is the Services index page, provide the services queryset for the template
+	if page.path == 'services':
+		from django.db.models import Q
+		q = (request.GET.get('q') or '').strip()
+		svc_qs = Service.objects.filter(status=PublishStatus.PUBLISH, page__status=PublishStatus.PUBLISH)
+		if q:
+			svc_qs = svc_qs.filter(
+				Q(title__icontains=q) |
+				Q(excerpt__icontains=q) |
+				Q(page__title__icontains=q)
+			)
+		services = list(svc_qs.select_related('page').order_by('order', 'title'))
+		ctx['services'] = services
 	return HttpResponse(tpl.render(ctx, request))
 
 
