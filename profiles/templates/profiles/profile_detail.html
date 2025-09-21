@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.display_name }} | Therapist{% endblock %}
+{% block content %}
+<main id="content">
+  <section class="relative overflow-hidden z-10 bg-brand-deep text-white pb-0">
+    <div class="max-w-[1100px] mx-auto px-4 pt-16 pb-10">
+      <h1 class="text-3xl font-semibold m-0">{{ profile.display_name }}</h1>
+      {% if profile.title %}<p class="mt-2 text-white/80">{{ profile.title }}</p>{% endif %}
+    </div>
+  </section>
+  <section class="relative z-20 py-10 md:py-14 bg-brand-accent">
+    <div class="container mx-auto px-4 grid gap-8 md:grid-cols-3">
+      <div class="md:col-span-2">
+        {% if profile.photo %}
+          <img src="{{ profile.photo.url }}" alt="{{ profile.display_name }}" class="rounded-lg mb-6 w-full h-auto" />
+        {% endif %}
+        <div class="prose max-w-none">
+          {{ profile.bio_html|safe }}
+        </div>
+      </div>
+      <aside class="md:col-span-1 bg-white rounded-lg shadow p-5">
+        {% if profile.licenses %}<p class="text-sm"><span class="font-semibold">Licenses:</span> {{ profile.licenses }}</p>{% endif %}
+        {% if profile.specialties %}<p class="text-sm mt-2"><span class="font-semibold">Specialties:</span> {{ profile.specialties }}</p>{% endif %}
+        {% if profile.modalities %}<p class="text-sm mt-2"><span class="font-semibold">Modalities:</span> {{ profile.modalities }}</p>{% endif %}
+        {% if profile.city or profile.state %}<p class="text-sm mt-2"><span class="font-semibold">Location:</span> {{ profile.city }}{% if profile.city and profile.state %}, {% endif %}{{ profile.state }}</p>{% endif %}
+      </aside>
+    </div>
+  </section>
+</main>
+{% endblock %}
+{% block before_footer %}
+  <div aria-hidden="true" class="w-full bg-brand-deep h-16"></div>
+{% endblock %}

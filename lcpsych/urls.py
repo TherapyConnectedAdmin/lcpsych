@@ -41,6 +41,7 @@ urlpatterns = [
         content_type='text/plain'
     ), name='robots_txt'),
     path('', include('core.urls')),
+    path('', include('profiles.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

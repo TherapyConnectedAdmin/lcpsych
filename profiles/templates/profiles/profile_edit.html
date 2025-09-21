@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile | Therapist{% endblock %}
+{% block content %}
+<main id="content">
+  <section class="relative overflow-hidden z-10 bg-brand-deep text-white pb-0">
+    <div class="max-w-[1100px] mx-auto px-4 pt-16 pb-10">
+      <h1 class="text-3xl font-semibold m-0">Edit your profile</h1>
+    </div>
+  </section>
+  <section class="relative z-20 py-10 md:py-14 bg-brand-accent">
+    <div class="container mx-auto px-4">
+      <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow p-6">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="mt-4">
+          <button type="submit" class="rounded-xl bg-[#3C9C64] text-white font-semibold py-2 px-4 transition-colors hover:bg-[#92DCE5] hover:text-[#005F6B] focus-visible:bg-[#92DCE5] focus-visible:text-[#005F6B]">Save</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+{% endblock %}
+{% block before_footer %}
+  <div aria-hidden="true" class="w-full bg-brand-deep h-16"></div>
+{% endblock %}

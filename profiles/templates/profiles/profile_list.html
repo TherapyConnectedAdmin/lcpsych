@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Therapists | L+C Psych{% endblock %}
+{% block content %}
+<main id="content">
+  <section class="relative overflow-hidden z-10 bg-brand-deep text-white pb-0">
+    <div class="max-w-[1100px] mx-auto px-4 pt-16 pb-10 text-center">
+      <h1 class="text-4xl leading-tight font-semibold m-0">Our Therapists</h1>
+      <p class="mt-4 mx-auto max-w-[800px] text-white/90 text-lg">Meet our team of licensed professionals.</p>
+    </div>
+  </section>
+  <section class="relative z-20 py-10 md:py-14 bg-brand-accent">
+    <div class="container mx-auto px-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {% for p in profiles %}
+        <a href="{% url 'profiles:profile_detail' slug=p.slug %}" class="group flex flex-col h-full rounded-lg ring-1 ring-slate-200 hover:ring-slate-300 bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+          {% if p.photo %}
+            <div class="h-48 w-full bg-cover bg-center" style="background-image: url('{{ p.photo.url }}');"></div>
+          {% endif %}
+          <div class="p-5 flex flex-col grow">
+            <h2 class="text-xl font-medium text-[#005F6B]">{{ p.display_name }}</h2>
+            {% if p.title %}<p class="mt-1 text-slate-600">{{ p.title }}</p>{% endif %}
+            {% if p.specialties %}<p class="mt-3 text-slate-700 text-sm">{{ p.specialties }}</p>{% endif %}
+            <div class="mt-auto pt-4">
+              <span class="inline-flex items-center rounded-md bg-[#3C9C64] px-3 py-1.5 text-sm font-medium text-white transition-colors group-hover:bg-[#92DCE5] group-hover:text-[#005F6B]">View profile</span>
+            </div>
+          </div>
+        </a>
+      {% empty %}
+        <p class="text-slate-600">Profiles coming soon.</p>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+{% endblock %}
+{% block before_footer %}
+  <div aria-hidden="true" class="w-full bg-brand-deep h-16"></div>
+{% endblock %}
