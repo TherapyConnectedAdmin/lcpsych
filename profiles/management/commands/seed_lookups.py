@@ -11,6 +11,12 @@ from profiles.models import (
     TherapyType,
     SpecialtyLookup,
     LicenseType,
+    # Newly added lookups
+    TestingType,
+    RaceEthnicity,
+    Faith,
+    LGBTQIA,
+    OtherIdentity,
 )
 
 
@@ -274,6 +280,104 @@ class Command(BaseCommand):
             _getset(LicenseType, name, category=license_category(name), sort_order=i)
         self.stdout.write(self.style.SUCCESS(f"Seeded {len(license_types)} license types."))
 
+        # Testing Types
+        tt_testing_vals = [
+            "Psychological Evaluation",
+            "Neuropsychological Testing",
+            "ADHD Assessment",
+            "Autism Spectrum Evaluation",
+            "Learning Disability Assessment",
+            "Diagnostic Clarification",
+            "Bariatric Surgery Evaluation",
+            "Pre-Surgical Clearance",
+            "Forensic/Legal Evaluation",
+            "Career/Aptitude Testing",
+        ]
+
+        def testing_category(name: str) -> str:
+            low = name.lower()
+            if any(k in low for k in ["neuro", "learning", "adhd", "autism"]):
+                return "Cognitive & Neuro"
+            if any(k in low for k in ["diagnostic", "psychological"]):
+                return "General Diagnostic"
+            if any(k in low for k in ["surg", "bariatric", "clearance"]):
+                return "Medical Clearance"
+            if any(k in low for k in ["forensic", "legal"]):
+                return "Forensic"
+            if any(k in low for k in ["career", "aptitude"]):
+                return "Vocational"
+            return "Other"
+
+        for i, name in enumerate(tt_testing_vals, start=1):
+            _getset(TestingType, name, category=testing_category(name), sort_order=i)
+        self.stdout.write(self.style.SUCCESS(f"Seeded {len(tt_testing_vals)} testing types."))
+
+        # Identity lookups
+        race_vals = [
+            "Black / African American",
+            "Hispanic / Latino / Latina / Latinx",
+            "White",
+            "Asian",
+            "Native American / Alaska Native",
+            "Native Hawaiian / Pacific Islander",
+            "Middle Eastern / North African",
+            "Multiracial / Multiethnic",
+            "Other / Prefer to Self-Describe",
+        ]
+        for name in race_vals:
+            _getset(RaceEthnicity, name)
+        self.stdout.write(self.style.SUCCESS(f"Seeded {len(race_vals)} race/ethnicity values."))
+
+        faith_vals = [
+            "Christian",
+            "Catholic",
+            "Protestant",
+            "Jewish",
+            "Muslim",
+            "Hindu",
+            "Buddhist",
+            "Sikh",
+            "Agnostic",
+            "Atheist",
+            "Spiritual but not religious",
+            "Other / Interfaith",
+        ]
+        for name in faith_vals:
+            _getset(Faith, name)
+        self.stdout.write(self.style.SUCCESS(f"Seeded {len(faith_vals)} faith values."))
+
+        lgbtq_vals = [
+            "Lesbian",
+            "Gay",
+            "Bisexual",
+            "Transgender",
+            "Queer / Questioning",
+            "Intersex",
+            "Asexual",
+            "Non-binary",
+            "Pansexual",
+            "Two-Spirit",
+            "Ally / Allied",
+        ]
+        for name in lgbtq_vals:
+            _getset(LGBTQIA, name)
+        self.stdout.write(self.style.SUCCESS(f"Seeded {len(lgbtq_vals)} LGBTQIA+ values."))
+
+        other_identity_vals = [
+            "Veteran",
+            "Active Duty Military",
+            "First Responder",
+            "Immigrant / Refugee",
+            "Disabled",
+            "Neurodivergent",
+            "Caregiver",
+            "Student",
+            "Parent",
+        ]
+        for name in other_identity_vals:
+            _getset(OtherIdentity, name)
+        self.stdout.write(self.style.SUCCESS(f"Seeded {len(other_identity_vals)} other identity values."))
+
         # Optional purge (safe subset only)
         if opts.get('purge_extra'):
             # For these models, we can safely remove rows not in the canonical lists
@@ -293,5 +397,10 @@ class Command(BaseCommand):
             _purge(TherapyType, tt_vals, 'TherapyType')
             _purge(SpecialtyLookup, spec_vals, 'SpecialtyLookup')
             _purge(LicenseType, license_types, 'LicenseType')
+            _purge(TestingType, tt_testing_vals, 'TestingType')
+            _purge(RaceEthnicity, race_vals, 'RaceEthnicity')
+            _purge(Faith, faith_vals, 'Faith')
+            _purge(LGBTQIA, lgbtq_vals, 'LGBTQIA')
+            _purge(OtherIdentity, other_identity_vals, 'OtherIdentity')
 
         self.stdout.write(self.style.SUCCESS(f"Lookup seed complete. created={created_total} updated={updated_total}"))
