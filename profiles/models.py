@@ -178,6 +178,8 @@ class Location(models.Model):
 
 class LicenseType(models.Model):
     name = models.CharField(max_length=64, unique=True)
+    description = models.CharField(max_length=512, blank=True, default="")
+    short_description = models.CharField(max_length=80, blank=True, default="")
     category = models.CharField(max_length=48, blank=True, db_index=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
 
@@ -205,39 +207,114 @@ class License(models.Model):
 
 
 class OfficeHour(models.Model):
-    MONDAY = 0
-    TUESDAY = 1
-    WEDNESDAY = 2
-    THURSDAY = 3
-    FRIDAY = 4
-    SATURDAY = 5
-    SUNDAY = 6
-    DAY_CHOICES = [
-        (MONDAY, "Monday"),
-        (TUESDAY, "Tuesday"),
-        (WEDNESDAY, "Wednesday"),
-        (THURSDAY, "Thursday"),
-        (FRIDAY, "Friday"),
-        (SATURDAY, "Saturday"),
-        (SUNDAY, "Sunday"),
-    ]
-
+    """Represents a single day's office hours for a specific location.
+    Allows optional second interval (split shift) and flags for closed / by appointment.
+    """
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name="office_hours")
-    day_of_week = models.PositiveSmallIntegerField(choices=DAY_CHOICES)
-    start_time = models.TimeField(blank=True, null=True)
-    end_time = models.TimeField(blank=True, null=True)
+    # 0=Monday .. 6=Sunday
+    weekday = models.PositiveSmallIntegerField(help_text="0=Mon .. 6=Sun", default=0)
     is_closed = models.BooleanField(default=False)
+    by_appointment_only = models.BooleanField(default=False, help_text="Ignore times; display 'By appointment' if true")
+    start_time_1 = models.TimeField(blank=True, null=True)
+    end_time_1 = models.TimeField(blank=True, null=True)
+    start_time_2 = models.TimeField(blank=True, null=True)
+    end_time_2 = models.TimeField(blank=True, null=True)
     notes = models.CharField(max_length=120, blank=True)
 
     class Meta:
-        ordering = ["location", "day_of_week", "start_time"]
-        unique_together = ("location", "day_of_week", "start_time", "end_time")
+        ordering = ["location", "weekday"]
+        unique_together = ("location", "weekday")
 
     def __str__(self) -> str:
-        day = dict(self.DAY_CHOICES).get(self.day_of_week, str(self.day_of_week))
-        if self.is_closed:
-            return f"{day}: Closed"
-        return f"{day}: {self.start_time} - {self.end_time}"
+        return f"{self.location.practice_name or 'Location'} day {self.weekday}"
+
+
+# Identity lookups
+class RaceEthnicity(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Faith(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class LGBTQIA(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class OtherIdentity(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+# Identity selections
+class RaceEthnicitySelection(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="race_ethnicities")
+    race_ethnicity = models.ForeignKey(RaceEthnicity, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.race_ethnicity.name
+
+
+class FaithSelection(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="faiths")
+    faith = models.ForeignKey(Faith, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.faith.name
+
+
+class LGBTQIASelection(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="lgbtqia_identities")
+    lgbtqia = models.ForeignKey(LGBTQIA, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.lgbtqia.name
+
+
+class OtherIdentitySelection(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="other_identities")
+    other_identity = models.ForeignKey(OtherIdentity, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.other_identity.name
+
+
+# Testing & Evaluation
+class TestingType(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class TestingTypeSelection(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="testing_types")
+    testing_type = models.ForeignKey(TestingType, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.testing_type.name
+
+
+class AreasOfExpertise(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="areas_of_expertise")
+    expertise = models.CharField(max_length=32)
+
+    def __str__(self) -> str:
+        return self.expertise
 
 
 class AdditionalCredential(models.Model):
@@ -261,6 +338,8 @@ class GalleryImage(models.Model):
     therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="gallery_images")
     image = models.ImageField(upload_to="therapists/gallery/")
     caption = models.CharField(max_length=128, blank=True)
+    image_meta = models.JSONField(blank=True, null=True, default=dict)
+    is_primary = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.caption or str(self.image)
@@ -281,3 +360,85 @@ class InsuranceDetail(models.Model):
 
     def __str__(self) -> str:
         return f"{self.provider} ({'OON' if self.out_of_network else 'In-Network'})"
+
+
+class VideoGallery(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="video_gallery")
+    video = models.FileField(upload_to="therapists/video_gallery/")
+    caption = models.CharField(max_length=128, blank=True)
+
+    def __str__(self) -> str:
+        return self.caption or str(self.video)
+
+
+class Credential(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="credentials")
+    license_type = models.ForeignKey(LicenseType, on_delete=models.CASCADE, related_name="credentials", null=True, blank=True)
+
+    def __str__(self) -> str:
+        return str(self.license_type)
+
+
+class ProfessionalInsurance(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="professional_insurances")
+    npi_number = models.CharField(max_length=10, blank=True, unique=True)
+    malpractice_carrier = models.CharField(max_length=64, blank=True)
+    malpractice_expiration_date = models.CharField(max_length=7, blank=True)
+
+    def __str__(self) -> str:
+        return self.npi_number
+
+
+class LicenseVerificationLog(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="license_verification_logs")
+    status = models.CharField(max_length=32)
+    message = models.CharField(max_length=512, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    raw = models.JSONField(blank=True, null=True, default=dict)
+
+    def __str__(self) -> str:
+        return f"{self.therapist_id} {self.status} {self.created_at:%Y-%m-%d}"
+
+
+class StateLicenseBoard(models.Model):
+    state = models.CharField(max_length=2, db_index=True)
+    board_name = models.CharField(max_length=128, blank=True)
+    license_type = models.CharField(max_length=64, blank=True, help_text="Optional license type scope if board differs by type")
+    search_url = models.CharField(max_length=512, help_text="Public search or lookup URL for manual + automated verification")
+    active = models.BooleanField(default=True)
+    notes = models.CharField(max_length=512, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("state", "license_type", "search_url")
+        ordering = ["state", "license_type"]
+
+    def __str__(self) -> str:
+        return f"{self.state} {self.license_type or ''} board".strip()
+
+
+class ZipCode(models.Model):
+    zip = models.CharField(max_length=5, primary_key=True)
+    city = models.CharField(max_length=64)
+    state = models.CharField(max_length=2, db_index=True)
+    latitude = models.DecimalField(max_digits=8, decimal_places=5)
+    longitude = models.DecimalField(max_digits=8, decimal_places=5)
+
+    def __str__(self) -> str:
+        return f"{self.zip} ({self.city}, {self.state})"
+
+
+class OtherTherapyType(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="other_therapy_types")
+    therapy_type = models.CharField(max_length=64)
+
+    def __str__(self) -> str:
+        return self.therapy_type
+
+
+class OtherTreatmentOption(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="other_treatment_options")
+    option_text = models.CharField(max_length=64)
+
+    def __str__(self) -> str:
+        return self.option_text

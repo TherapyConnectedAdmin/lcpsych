@@ -1,0 +1,452 @@
+# NOTE: TherapistProfile is the canonical therapist model for all assignments (age groups, participant types, etc.).
+# Legacy assignment tables may use 'therapist' as a ForeignKey, but all new relationships should use TherapistProfile for consistency.
+
+from django.db import models
+from django.conf import settings
+from django.core.validators import RegexValidator
+
+# ...existing code...
+
+# Specialty lookup model
+class SpecialtyLookup(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    def __str__(self): return self.name
+
+from django.db import models
+from django.conf import settings
+from django.core.validators import RegexValidator
+
+# TherapyType lookup model for types_of_therapy
+class TherapyType(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    def __str__(self): return self.name
+
+# Selection model for therapist therapy types
+class TherapyTypeSelection(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='types_of_therapy')
+    therapy_type = models.ForeignKey('TherapyType', on_delete=models.CASCADE)
+    def __str__(self): return self.therapy_type.name
+
+# Testing & Evaluation lookup model
+class TestingType(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    def __str__(self): return self.name
+
+# Selection model for therapist testing types
+class TestingTypeSelection(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='testing_types')
+    testing_type = models.ForeignKey('TestingType', on_delete=models.CASCADE)
+    def __str__(self): return self.testing_type.name
+
+# Areas of Expertise (custom multi-value)
+class AreasOfExpertise(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='areas_of_expertise')
+    expertise = models.CharField(max_length=32)
+    def __str__(self): return self.expertise
+
+# Top Specialties (up to 5)
+
+
+# Title lookup model for therapist title dropdown
+class Title(models.Model):
+    name = models.CharField(max_length=16, unique=True)
+    def __str__(self): return self.name
+
+# PaymentMethod model for accepted payment methods
+class PaymentMethod(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    def __str__(self): return self.name
+
+# Selection model for therapist payment methods
+class PaymentMethodSelection(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='accepted_payment_methods')
+    payment_method = models.ForeignKey('PaymentMethod', on_delete=models.CASCADE)
+    def __str__(self): return self.payment_method.name
+
+# Lookup models for identity fields
+class Gender(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+    def __str__(self): return self.name
+
+class RaceEthnicity(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    def __str__(self): return self.name
+
+class Faith(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    def __str__(self): return self.name
+
+class LGBTQIA(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    def __str__(self): return self.name
+
+class OtherIdentity(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    def __str__(self): return self.name
+
+# InsuranceProvider model for in-network insurance choices
+class InsuranceProvider(models.Model):
+    name = models.CharField(max_length=256, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    def __str__(self):
+        return self.name
+
+
+# Lookup models
+class LicenseType(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    description = models.CharField(max_length=512, blank=True, default="")
+    # Concise label for UI badges or condensed displays (e.g. "PsyD Clinical Psychologist")
+    short_description = models.CharField(max_length=80, blank=True, default="")
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    def __str__(self): return self.name
+
+# Proxy model purely to expose lookup maintenance actions in Django admin
+class LookupMaintenance(LicenseType):
+    class Meta:
+        proxy = True
+        verbose_name = "Lookup Maintenance"
+        verbose_name_plural = "Lookup Maintenance"
+
+
+# TherapistProfile model
+class RaceEthnicitySelection(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='race_ethnicities')
+    race_ethnicity = models.ForeignKey('RaceEthnicity', on_delete=models.CASCADE)
+    def __str__(self): return self.race_ethnicity.name
+class FaithSelection(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='faiths')
+    faith = models.ForeignKey('Faith', on_delete=models.CASCADE)
+    def __str__(self): return self.faith.name
+class LGBTQIASelection(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='lgbtqia_identities')
+    lgbtqia = models.ForeignKey('LGBTQIA', on_delete=models.CASCADE)
+    def __str__(self): return self.lgbtqia.name
+class OtherIdentitySelection(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='other_identities')
+    other_identity = models.ForeignKey('OtherIdentity', on_delete=models.CASCADE)
+    def __str__(self): return self.other_identity.name
+
+class TherapistProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=64, default="")
+    middle_name = models.CharField(max_length=64, blank=True)
+    last_name = models.CharField(max_length=64, default="")
+    # SEO friendly slug for public profile pages (generated from name + id)
+    slug = models.SlugField(max_length=160, unique=True, blank=True)
+    title = models.ForeignKey('Title', on_delete=models.SET_NULL, blank=True, null=True, related_name='therapists')
+    display_title = models.BooleanField(default=False)
+    # New split: intro_note (short) and personal_statement_01 (longer About Me)
+    intro_note = models.TextField(max_length=500, blank=True)
+    personal_statement_01 = models.TextField(max_length=1000, blank=True)
+    # Legacy field kept temporarily for migration/backwards compatibility
+    personal_statement_q1 = models.TextField(max_length=500, blank=True)
+    personal_statement_q2 = models.TextField(max_length=500, blank=True)
+    personal_statement_q3 = models.TextField(max_length=500, blank=True)
+    practice_name = models.CharField(max_length=128, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    phone_extension = models.CharField(max_length=8, blank=True)
+    receive_calls_from_client = models.BooleanField(default=True)
+    mobile_number = models.CharField(max_length=20, blank=True)
+    receive_texts_from_clients = models.BooleanField(default=True)
+    @property
+    def practice_email(self):
+        return self.user.email
+    office_email = models.EmailField(max_length=128, blank=True)
+    receive_emails_from_clients = models.BooleanField(default=True)
+    receive_emails_when_client_calls = models.BooleanField(default=True)
+    # Preferred contact method for sticky header CTA (email or phone)
+    PREFERRED_CONTACT_CHOICES = [
+        ("email", "Email"),
+        ("phone", "Phone"),
+    ]
+    preferred_contact_method = models.CharField(max_length=16, choices=PREFERRED_CONTACT_CHOICES, blank=True, default="")
+    # Where to route client-initiated emails shown on public profile
+    EMAIL_DEST_CHOICES = [
+        ("therapist", "Therapist"),
+        ("office", "Office"),
+        ("both", "Both"),
+    ]
+    email_contact_destination = models.CharField(max_length=16, choices=EMAIL_DEST_CHOICES, default="therapist")
+    intro_statement = models.TextField(max_length=500, blank=True)
+    therapy_delivery_method = models.CharField(max_length=32, blank=True)
+    # Expanded to allow descriptive tri-state strings ("Accepting New Clients", "Not Accepting New Clients", "I Have a Waitlist")
+    accepting_new_clients = models.CharField(max_length=32, default="Yes")
+    offers_intro_call = models.BooleanField(default=False)
+    individual_session_cost = models.CharField(max_length=16, blank=True)
+    couples_session_cost = models.CharField(max_length=16, blank=True)
+    sliding_scale_pricing_available = models.BooleanField(default=False)
+    finance_note = models.CharField(max_length=128, blank=True)
+    # Rich text / longer explanation of cancellation or missed appointment terms
+    no_show_policy = models.TextField(max_length=1000, blank=True)
+    credentials_note = models.TextField(max_length=500, blank=True)
+    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    # Stores generated variant metadata for profile_photo (paths, flags, dimensions, quality metrics)
+    profile_photo_meta = models.JSONField(blank=True, null=True, default=dict)
+    practice_website_url = models.CharField(max_length=256, blank=True)
+    # Controls whether the practice website is shown on the public profile
+    show_website_on_public = models.BooleanField(default=True)
+    facebook_url = models.CharField(max_length=256, blank=True)
+    instagram_url = models.CharField(max_length=256, blank=True)
+    linkedin_url = models.CharField(max_length=256, blank=True)
+    twitter_url = models.CharField(max_length=256, blank=True)
+    tiktok_url = models.CharField(max_length=256, blank=True)
+    youtube_url = models.CharField(max_length=256, blank=True)
+    # Online Scheduling
+    online_scheduling_url = models.CharField(max_length=256, blank=True)
+    show_online_scheduling = models.BooleanField(default=False)
+    therapy_types_note = models.TextField(max_length=500, blank=True)
+    specialties_note = models.TextField(max_length=500, blank=True)
+    # Testing & Evaluation
+    offers_testing = models.BooleanField(default=False)
+    mental_health_role = models.CharField(max_length=16, blank=True)
+    license_type = models.ForeignKey('LicenseType', on_delete=models.SET_NULL, blank=True, null=True, related_name='therapists')
+    # Relaxed: license numbers can repeat across states; enforce (state, number) uniqueness at application level
+    license_number = models.CharField(max_length=32, blank=True, db_index=True)
+    license_expiration = models.CharField(max_length=7, blank=True)
+    license_state = models.CharField(max_length=2, blank=True)
+    # Optional override if licensed name differs from profile display name
+    license_first_name = models.CharField(max_length=64, blank=True)
+    license_last_name = models.CharField(max_length=64, blank=True)
+    # Automated license verification fields
+    LICENSE_STATUS_CHOICES = [
+        ("unverified", "Unverified"),
+        ("pending", "Pending"),
+        ("active_good_standing", "Active / Good Standing"),
+        ("not_found", "Not Found"),
+        ("expired", "Expired"),
+        ("disciplinary_flag", "Disciplinary Flag"),
+        ("error", "Verification Error"),
+    ]
+    license_status = models.CharField(max_length=32, choices=LICENSE_STATUS_CHOICES, default="unverified", blank=True)
+    license_last_verified_at = models.DateTimeField(blank=True, null=True)
+    license_verification_source_url = models.CharField(max_length=512, blank=True)
+    license_verification_raw = models.JSONField(blank=True, null=True, default=dict, help_text="Raw parsed payload from state site/API (sanitized)")
+    # Explicit start year of professional practice (optional override for derived years_in_practice)
+    year_started_practice = models.CharField(max_length=4, blank=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.ForeignKey('Gender', on_delete=models.SET_NULL, blank=True, null=True, related_name='therapists')
+    participant_types = models.ManyToManyField('ParticipantType', related_name='therapists', blank=True)
+    age_groups = models.ManyToManyField('AgeGroup', related_name='therapists', blank=True)
+    # Tracks the most recent time a visitor viewed this therapist's public profile
+    last_viewed_at = models.DateTimeField(blank=True, null=True)
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        base = f"{self.first_name} {self.last_name}".strip() or str(self.user_id or '')
+        if not self.slug:
+            raw = slugify(base)[:120]
+            candidate = raw
+            # Ensure uniqueness (avoid race; best-effort)
+            counter = 2
+            while candidate and TherapistProfile.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                candidate = f"{raw}-{counter}"[:155]
+                counter += 1
+            self.slug = candidate or slugify(f"therapist-{self.pk or ''}")
+        super().save(*args, **kwargs)
+
+    # Convenience flag helpers (robust against missing meta)
+    @property
+    def photo_flags(self):
+        return (self.profile_photo_meta or {}).get('flags', [])
+
+    @property
+    def photo_is_low_res(self):
+        return 'low_res' in self.photo_flags
+
+    @property
+    def photo_is_blurry(self):
+        return 'blurry' in self.photo_flags
+
+    @property
+    def photo_is_rejected(self):
+        return 'rejected' in self.photo_flags
+
+    @property
+    def photo_pipeline_version(self):
+        return (self.profile_photo_meta or {}).get('pipeline_version')
+
+# Credential model for multi-value therapist credentials
+class Credential(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='credentials')
+    license_type = models.ForeignKey('LicenseType', on_delete=models.CASCADE, related_name='credentials', null=True, blank=True)
+    def __str__(self):
+        return str(self.license_type)
+
+# VideoGallery model for therapist video uploads
+class VideoGallery(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='video_gallery')
+    video = models.FileField(upload_to='video_gallery/')
+    caption = models.CharField(max_length=128, blank=True)
+    def __str__(self):
+        return self.caption or str(self.video)
+
+# Location model for multiple therapist locations
+class Location(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='locations')
+    practice_name = models.CharField(max_length=128, blank=True)
+    street_address = models.CharField(max_length=128, blank=True)
+    address_line_2 = models.CharField(max_length=128, blank=True)
+    city = models.CharField(max_length=64, blank=True)
+    state = models.CharField(max_length=32, blank=True)
+    zip = models.CharField(max_length=16, blank=True)
+    hide_address_from_public = models.BooleanField(default=False)
+    is_primary_address = models.BooleanField(default=False)
+    # ...phone and email fields removed, only on TherapistProfile...
+    def __str__(self):
+        return f"{self.practice_name} ({self.city}, {self.state})"
+
+class OfficeHour(models.Model):
+    """Represents a single day's office hours for a specific location.
+    Allows optional second interval (split shift) and flags for closed / by appointment.
+    Stored in 24h HH:MM format for easy client formatting.
+    """
+    location = models.ForeignKey('Location', on_delete=models.CASCADE, related_name='office_hours')
+    # 0=Monday .. 6=Sunday for consistent ordering
+    weekday = models.PositiveSmallIntegerField(help_text="0=Mon .. 6=Sun")
+    is_closed = models.BooleanField(default=False)
+    by_appointment_only = models.BooleanField(default=False, help_text="Ignore times; display 'By appointment' if true")
+    start_time_1 = models.CharField(max_length=5, blank=True, help_text="HH:MM")
+    end_time_1 = models.CharField(max_length=5, blank=True, help_text="HH:MM")
+    start_time_2 = models.CharField(max_length=5, blank=True, help_text="Optional second interval start HH:MM")
+    end_time_2 = models.CharField(max_length=5, blank=True, help_text="Optional second interval end HH:MM")
+    notes = models.CharField(max_length=64, blank=True)
+    class Meta:
+        ordering = ["location", "weekday"]
+        unique_together = ("location", "weekday")
+    def __str__(self):
+        return f"{self.location.practice_name or 'Location'} day {self.weekday}" 
+
+# ZipCode reference model for distance calculations (seeded via management command)
+class ZipCode(models.Model):
+    zip = models.CharField(max_length=5, primary_key=True)
+    city = models.CharField(max_length=64)
+    state = models.CharField(max_length=2, db_index=True)
+    latitude = models.DecimalField(max_digits=8, decimal_places=5)
+    longitude = models.DecimalField(max_digits=8, decimal_places=5)
+    def __str__(self): return f"{self.zip} ({self.city}, {self.state})"
+
+
+class Education(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='educations')
+    school = models.CharField(max_length=64)
+    degree_diploma = models.CharField(max_length=32)
+    year_graduated = models.CharField(max_length=4)
+    year_began_practice = models.CharField(max_length=4, blank=True)
+    def __str__(self): return f"{self.degree_diploma} from {self.school}"
+
+class AdditionalCredential(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='additional_credentials')
+    CREDENTIAL_TYPE_CHOICES = [
+        ("Membership", "Membership"),
+        ("License", "License"),
+        ("Certificate", "Certificate"),
+        ("Degree/Diploma", "Degree/Diploma"),
+    ]
+    additional_credential_type = models.CharField(max_length=16, blank=True, choices=CREDENTIAL_TYPE_CHOICES, default="")
+    organization_name = models.CharField(max_length=64)
+    id_number = models.CharField(max_length=32, blank=True)
+    year_issued = models.CharField(max_length=4)
+    def __str__(self): return f"{self.organization_name} ({self.id_number})"
+
+class Specialty(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='specialties')
+    specialty = models.ForeignKey('SpecialtyLookup', on_delete=models.CASCADE, null=True, default=None)
+    is_top_specialty = models.BooleanField(default=False)
+    def __str__(self): return str(self.specialty)
+
+
+
+
+# Lookup model for participant type
+class ParticipantType(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+    def __str__(self):
+        return self.name
+
+# Lookup model for age group
+class AgeGroup(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+    def __str__(self):
+        return self.name
+
+# Add to TherapistProfile: many-to-many for participant types and age groups
+## Removed duplicate TherapistProfile definition. All fields are now in the single class above.
+
+# Remove ClientFocusSelection if it exists
+
+
+
+
+
+# Custom model for user-defined therapy types
+class OtherTherapyType(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='other_therapy_types')
+    therapy_type = models.CharField(max_length=64)
+    def __str__(self): return self.therapy_type
+
+class OtherTreatmentOption(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='other_treatment_options')
+    option_text = models.CharField(max_length=64)
+    def __str__(self): return self.option_text
+
+class GalleryImage(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='gallery_images')
+    image = models.ImageField(upload_to='gallery/')
+    caption = models.CharField(max_length=128, blank=True)
+    image_meta = models.JSONField(blank=True, null=True, default=dict)
+    is_primary = models.BooleanField(default=False, help_text="Marks the primary gallery image for emphasized display")
+    def __str__(self): return self.caption or str(self.image)
+
+class InsuranceDetail(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='insurance_details')
+    provider = models.ForeignKey('InsuranceProvider', on_delete=models.CASCADE, related_name='insurance_details')
+    out_of_network = models.BooleanField(default=False)
+    def __str__(self):
+        return f"{self.provider.name} (Out of Network: {self.out_of_network})"
+
+class ProfessionalInsurance(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='professional_insurances')
+    npi_number = models.CharField(max_length=10, blank=True, unique=True)
+    malpractice_carrier = models.CharField(max_length=64, blank=True)
+    malpractice_expiration_date = models.CharField(max_length=7, blank=True)
+    def __str__(self):
+        return self.npi_number
+
+class LicenseVerificationLog(models.Model):
+    therapist = models.ForeignKey('TherapistProfile', on_delete=models.CASCADE, related_name='license_verification_logs')
+    status = models.CharField(max_length=32)
+    message = models.CharField(max_length=512, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    raw = models.JSONField(blank=True, null=True, default=dict)
+    def __str__(self):
+        return f"{self.therapist_id} {self.status} {self.created_at:%Y-%m-%d}" 
+
+class StateLicenseBoard(models.Model):
+    """Metadata/config for each state's licensing board search.
+    Initially minimal; can be expanded with scraping selectors later.
+    """
+    state = models.CharField(max_length=2, db_index=True)
+    board_name = models.CharField(max_length=128, blank=True)
+    license_type = models.CharField(max_length=64, blank=True, help_text="Optional license type scope if board differs by type")
+    search_url = models.CharField(max_length=512, help_text="Public search or lookup URL for manual + automated verification")
+    active = models.BooleanField(default=True)
+    notes = models.CharField(max_length=512, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        unique_together = ('state','license_type','search_url')
+        ordering = ['state','license_type']
+    def __str__(self):
+        return f"{self.state} {self.license_type or ''} board".strip()

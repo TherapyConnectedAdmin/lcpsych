@@ -3,23 +3,42 @@ from .models import (
     TherapistProfile,
     Title,
     Gender,
+    RaceEthnicity,
+    Faith,
+    LGBTQIA,
+    OtherIdentity,
+    RaceEthnicitySelection,
+    FaithSelection,
+    LGBTQIASelection,
+    OtherIdentitySelection,
     SpecialtyLookup,
     TherapyType,
+    TestingType,
     InsuranceProvider,
     PaymentMethod,
     ParticipantType,
     AgeGroup,
     Specialty,
     TherapyTypeSelection,
+    TestingTypeSelection,
+    AreasOfExpertise,
     Education,
     Location,
     LicenseType,
     License,
     OfficeHour,
+    VideoGallery,
+    Credential,
     AdditionalCredential,
     GalleryImage,
     PaymentMethodSelection,
     InsuranceDetail,
+    ProfessionalInsurance,
+    LicenseVerificationLog,
+    StateLicenseBoard,
+    ZipCode,
+    OtherTherapyType,
+    OtherTreatmentOption,
 )
 
 
@@ -116,7 +135,7 @@ class EducationAdmin(admin.ModelAdmin):
 class OfficeHourInline(admin.TabularInline):
     model = OfficeHour
     extra = 0
-    fields = ("day_of_week", "start_time", "end_time", "is_closed", "notes")
+    fields = ("weekday", "is_closed", "by_appointment_only", "start_time_1", "end_time_1", "start_time_2", "end_time_2", "notes")
 
 
 @admin.register(Location)
@@ -136,7 +155,8 @@ class AdditionalCredentialAdmin(admin.ModelAdmin):
 
 @admin.register(GalleryImage)
 class GalleryImageAdmin(admin.ModelAdmin):
-    list_display = ("therapist", "caption")
+    list_display = ("therapist", "caption", "is_primary")
+    list_filter = ("is_primary",)
     search_fields = ("therapist__display_name", "caption")
 
 
@@ -171,3 +191,122 @@ class LicenseAdmin(admin.ModelAdmin):
     list_display = ("therapist", "license_type", "state", "license_number", "date_expires", "is_active")
     list_filter = ("license_type", "state", "is_active")
     search_fields = ("therapist__display_name", "license_number", "license_type__name")
+
+
+@admin.register(RaceEthnicity)
+class RaceEthnicityAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+
+
+@admin.register(Faith)
+class FaithAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+
+
+@admin.register(LGBTQIA)
+class LGBTQIAAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+
+
+@admin.register(OtherIdentity)
+class OtherIdentityAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+
+
+@admin.register(RaceEthnicitySelection)
+class RaceEthnicitySelectionAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "race_ethnicity")
+    search_fields = ("therapist__display_name", "race_ethnicity__name")
+
+
+@admin.register(FaithSelection)
+class FaithSelectionAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "faith")
+    search_fields = ("therapist__display_name", "faith__name")
+
+
+@admin.register(LGBTQIASelection)
+class LGBTQIASelectionAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "lgbtqia")
+    search_fields = ("therapist__display_name", "lgbtqia__name")
+
+
+@admin.register(OtherIdentitySelection)
+class OtherIdentitySelectionAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "other_identity")
+    search_fields = ("therapist__display_name", "other_identity__name")
+
+
+@admin.register(TestingType)
+class TestingTypeAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "sort_order")
+    list_editable = ("category", "sort_order")
+    search_fields = ("name",)
+
+
+@admin.register(TestingTypeSelection)
+class TestingTypeSelectionAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "testing_type")
+    search_fields = ("therapist__display_name", "testing_type__name")
+
+
+@admin.register(AreasOfExpertise)
+class AreasOfExpertiseAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "expertise")
+    search_fields = ("therapist__display_name", "expertise")
+
+
+@admin.register(VideoGallery)
+class VideoGalleryAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "caption")
+    search_fields = ("therapist__display_name", "caption")
+
+
+@admin.register(Credential)
+class CredentialAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "license_type")
+    list_filter = ("license_type",)
+    search_fields = ("therapist__display_name", "license_type__name")
+
+
+@admin.register(ProfessionalInsurance)
+class ProfessionalInsuranceAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "npi_number", "malpractice_carrier", "malpractice_expiration_date")
+    search_fields = ("therapist__display_name", "npi_number", "malpractice_carrier")
+
+
+@admin.register(LicenseVerificationLog)
+class LicenseVerificationLogAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "status", "created_at")
+    list_filter = ("status",)
+    search_fields = ("therapist__display_name", "status", "message")
+
+
+@admin.register(StateLicenseBoard)
+class StateLicenseBoardAdmin(admin.ModelAdmin):
+    list_display = ("state", "board_name", "license_type", "active", "updated_at")
+    list_filter = ("state", "active")
+    search_fields = ("state", "board_name", "license_type")
+
+
+@admin.register(ZipCode)
+class ZipCodeAdmin(admin.ModelAdmin):
+    list_display = ("zip", "city", "state")
+    list_filter = ("state",)
+    search_fields = ("zip", "city", "state")
+
+
+@admin.register(OtherTherapyType)
+class OtherTherapyTypeAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "therapy_type")
+    search_fields = ("therapist__display_name", "therapy_type")
+
+
+@admin.register(OtherTreatmentOption)
+class OtherTreatmentOptionAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "option_text")
+    search_fields = ("therapist__display_name", "option_text")
