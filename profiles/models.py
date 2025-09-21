@@ -3,6 +3,72 @@ from django.db import models
 from django.utils.text import slugify
 
 
+class Title(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Gender(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class SpecialtyLookup(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class TherapyType(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class InsuranceProvider(models.Model):
+    name = models.CharField(max_length=256, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class PaymentMethod(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class ParticipantType(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class AgeGroup(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class TherapistProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="therapist_profile")
     slug = models.SlugField(max_length=150, unique=True, blank=True)
@@ -10,6 +76,10 @@ class TherapistProfile(models.Model):
     # Core identity
     display_name = models.CharField(max_length=120)
     title = models.CharField(max_length=120, blank=True)
+    title_fk = models.ForeignKey(Title, on_delete=models.SET_NULL, blank=True, null=True, related_name="therapists")
+    first_name = models.CharField(max_length=64, blank=True, default="")
+    last_name = models.CharField(max_length=64, blank=True, default="")
+    gender = models.ForeignKey(Gender, on_delete=models.SET_NULL, blank=True, null=True, related_name="therapists")
     photo = models.ImageField(upload_to="therapists/photos/", blank=True, null=True)
 
     # Professional details
@@ -20,12 +90,22 @@ class TherapistProfile(models.Model):
 
     # Content
     bio_html = models.TextField(blank=True)
+    intro_statement = models.TextField(blank=True)
+    practice_name = models.CharField(max_length=128, blank=True)
+    practice_website_url = models.CharField(max_length=256, blank=True)
+    facebook_url = models.CharField(max_length=256, blank=True)
+    instagram_url = models.CharField(max_length=256, blank=True)
+    linkedin_url = models.CharField(max_length=256, blank=True)
 
     # Contact/availability
     accepts_new_clients = models.BooleanField(default=True)
     telehealth_only = models.BooleanField(default=False)
+    phone_number = models.CharField(max_length=20, blank=True)
+    office_email = models.EmailField(max_length=128, blank=True)
     city = models.CharField(max_length=120, blank=True)
     state = models.CharField(max_length=64, blank=True)
+    participant_types = models.ManyToManyField(ParticipantType, related_name="therapists", blank=True)
+    age_groups = models.ManyToManyField(AgeGroup, related_name="therapists", blank=True)
 
     # Publishing
     is_published = models.BooleanField(default=False)
@@ -48,3 +128,89 @@ class TherapistProfile(models.Model):
                 i += 1
             self.slug = slug
         super().save(*args, **kwargs)
+
+
+class Specialty(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="specialty_items")
+    specialty = models.ForeignKey(SpecialtyLookup, on_delete=models.CASCADE, null=True, default=None)
+    is_top_specialty = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return str(self.specialty)
+
+
+class TherapyTypeSelection(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="types_of_therapy")
+    therapy_type = models.ForeignKey(TherapyType, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.therapy_type.name
+
+
+class Education(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="educations")
+    school = models.CharField(max_length=128)
+    degree_diploma = models.CharField(max_length=64)
+    year_graduated = models.CharField(max_length=4)
+    year_began_practice = models.CharField(max_length=4, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.degree_diploma} from {self.school}"
+
+
+class Location(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="locations")
+    practice_name = models.CharField(max_length=128, blank=True)
+    street_address = models.CharField(max_length=128, blank=True)
+    address_line_2 = models.CharField(max_length=128, blank=True)
+    city = models.CharField(max_length=64, blank=True)
+    state = models.CharField(max_length=32, blank=True)
+    zip = models.CharField(max_length=16, blank=True)
+    hide_address_from_public = models.BooleanField(default=False)
+    is_primary_address = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f"{self.practice_name} ({self.city}, {self.state})"
+
+
+class AdditionalCredential(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="additional_credentials")
+    CREDENTIAL_TYPE_CHOICES = [
+        ("Membership", "Membership"),
+        ("License", "License"),
+        ("Certificate", "Certificate"),
+        ("Degree/Diploma", "Degree/Diploma"),
+    ]
+    additional_credential_type = models.CharField(max_length=16, blank=True, choices=CREDENTIAL_TYPE_CHOICES, default="")
+    organization_name = models.CharField(max_length=64)
+    id_number = models.CharField(max_length=32, blank=True)
+    year_issued = models.CharField(max_length=4)
+
+    def __str__(self) -> str:
+        return f"{self.organization_name} ({self.id_number})"
+
+
+class GalleryImage(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="gallery_images")
+    image = models.ImageField(upload_to="therapists/gallery/")
+    caption = models.CharField(max_length=128, blank=True)
+
+    def __str__(self) -> str:
+        return self.caption or str(self.image)
+
+
+class PaymentMethodSelection(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="accepted_payment_methods")
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.payment_method.name
+
+
+class InsuranceDetail(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="insurance_details")
+    provider = models.ForeignKey(InsuranceProvider, on_delete=models.SET_NULL, null=True, blank=True)
+    out_of_network = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f"{self.provider} ({'OON' if self.out_of_network else 'In-Network'})"
