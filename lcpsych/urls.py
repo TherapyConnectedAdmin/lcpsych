@@ -40,8 +40,9 @@ urlpatterns = [
         template_name='robots.txt',
         content_type='text/plain'
     ), name='robots_txt'),
-    path('', include('core.urls')),
+    # Place profiles before core to avoid being shadowed by core catch-all
     path('', include('profiles.urls')),
+    path('', include('core.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
