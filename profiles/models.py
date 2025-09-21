@@ -166,11 +166,78 @@ class Location(models.Model):
     city = models.CharField(max_length=64, blank=True)
     state = models.CharField(max_length=32, blank=True)
     zip = models.CharField(max_length=16, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
     hide_address_from_public = models.BooleanField(default=False)
     is_primary_address = models.BooleanField(default=False)
+    by_appointment_only = models.BooleanField(default=False)
+    notes = models.TextField(blank=True)
 
     def __str__(self) -> str:
         return f"{self.practice_name} ({self.city}, {self.state})"
+
+
+class LicenseType(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    category = models.CharField(max_length=48, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class License(models.Model):
+    therapist = models.ForeignKey(TherapistProfile, on_delete=models.CASCADE, related_name="licenses_details")
+    license_type = models.ForeignKey(LicenseType, on_delete=models.PROTECT, related_name="licenses")
+    state = models.CharField(max_length=2, blank=True, help_text="Two-letter state code (e.g., CA)")
+    license_number = models.CharField(max_length=64, blank=True)
+    date_issued = models.DateField(blank=True, null=True)
+    date_expires = models.DateField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "License"
+        verbose_name_plural = "Licenses"
+
+    def __str__(self) -> str:
+        ty = self.license_type.name if self.license_type_id else ""
+        st = f"-{self.state}" if self.state else ""
+        return f"{ty}{st} #{self.license_number}".strip()
+
+
+class OfficeHour(models.Model):
+    MONDAY = 0
+    TUESDAY = 1
+    WEDNESDAY = 2
+    THURSDAY = 3
+    FRIDAY = 4
+    SATURDAY = 5
+    SUNDAY = 6
+    DAY_CHOICES = [
+        (MONDAY, "Monday"),
+        (TUESDAY, "Tuesday"),
+        (WEDNESDAY, "Wednesday"),
+        (THURSDAY, "Thursday"),
+        (FRIDAY, "Friday"),
+        (SATURDAY, "Saturday"),
+        (SUNDAY, "Sunday"),
+    ]
+
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name="office_hours")
+    day_of_week = models.PositiveSmallIntegerField(choices=DAY_CHOICES)
+    start_time = models.TimeField(blank=True, null=True)
+    end_time = models.TimeField(blank=True, null=True)
+    is_closed = models.BooleanField(default=False)
+    notes = models.CharField(max_length=120, blank=True)
+
+    class Meta:
+        ordering = ["location", "day_of_week", "start_time"]
+        unique_together = ("location", "day_of_week", "start_time", "end_time")
+
+    def __str__(self) -> str:
+        day = dict(self.DAY_CHOICES).get(self.day_of_week, str(self.day_of_week))
+        if self.is_closed:
+            return f"{day}: Closed"
+        return f"{day}: {self.start_time} - {self.end_time}"
 
 
 class AdditionalCredential(models.Model):

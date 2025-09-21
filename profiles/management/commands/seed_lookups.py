@@ -10,6 +10,7 @@ from profiles.models import (
     InsuranceProvider,
     TherapyType,
     SpecialtyLookup,
+    LicenseType,
 )
 
 
@@ -236,6 +237,43 @@ class Command(BaseCommand):
             _getset(SpecialtyLookup, name, category=spec_category(name), sort_order=i)
         self.stdout.write(self.style.SUCCESS(f"Seeded {len(spec_vals)} specialty lookups."))
 
+        # License Types
+        license_types = [
+            "Psychiatrist",
+            "Psychologist",
+            "Licensed Clinical Social Worker (LCSW)",
+            "Associate Clinical Social Worker (ACSW)",
+            "Licensed Marriage & Family Therapist (LMFT)",
+            "Associate Marriage & Family Therapist (AMFT)",
+            "Licensed Professional Clinical Counselor (LPCC)",
+            "Associate Professional Clinical Counselor (APCC)",
+            "Licensed Clinical Psychologist (PhD/PsyD)",
+            "Board Certified Behavior Analyst (BCBA)",
+            "Licensed Educational Psychologist (LEP)",
+            "Nurse Practitioner (PMHNP)",
+            "Physician Assistant (PA-C)",
+        ]
+
+        def license_category(name: str) -> str:
+            low = name.lower()
+            if "psychiat" in low or "nurse" in low or "physician" in low:
+                return "Medical"
+            if "psycholog" in low or "lep" in low:
+                return "Psychology"
+            if "social worker" in low:
+                return "Social Work"
+            if "marriage" in low or "family" in low:
+                return "MFT"
+            if "counselor" in low:
+                return "Counselor"
+            if "bcba" in low:
+                return "Behavioral"
+            return "Other"
+
+        for i, name in enumerate(license_types, start=1):
+            _getset(LicenseType, name, category=license_category(name), sort_order=i)
+        self.stdout.write(self.style.SUCCESS(f"Seeded {len(license_types)} license types."))
+
         # Optional purge (safe subset only)
         if opts.get('purge_extra'):
             # For these models, we can safely remove rows not in the canonical lists
@@ -254,5 +292,6 @@ class Command(BaseCommand):
             _purge(InsuranceProvider, [n for n, _ in ins_vals], 'InsuranceProvider')
             _purge(TherapyType, tt_vals, 'TherapyType')
             _purge(SpecialtyLookup, spec_vals, 'SpecialtyLookup')
+            _purge(LicenseType, license_types, 'LicenseType')
 
         self.stdout.write(self.style.SUCCESS(f"Lookup seed complete. created={created_total} updated={updated_total}"))

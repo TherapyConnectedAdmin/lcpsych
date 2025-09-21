@@ -13,6 +13,9 @@ from .models import (
     TherapyTypeSelection,
     Education,
     Location,
+    LicenseType,
+    License,
+    OfficeHour,
     AdditionalCredential,
     GalleryImage,
     PaymentMethodSelection,
@@ -110,11 +113,18 @@ class EducationAdmin(admin.ModelAdmin):
     search_fields = ("therapist__display_name", "school", "degree_diploma")
 
 
+class OfficeHourInline(admin.TabularInline):
+    model = OfficeHour
+    extra = 0
+    fields = ("day_of_week", "start_time", "end_time", "is_closed", "notes")
+
+
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
-    list_display = ("therapist", "practice_name", "city", "state", "zip", "is_primary_address")
-    list_filter = ("state", "is_primary_address")
+    list_display = ("therapist", "practice_name", "city", "state", "zip", "is_primary_address", "by_appointment_only")
+    list_filter = ("state", "is_primary_address", "by_appointment_only")
     search_fields = ("therapist__display_name", "practice_name", "city", "state", "zip")
+    inlines = [OfficeHourInline]
 
 
 @admin.register(AdditionalCredential)
@@ -141,3 +151,23 @@ class InsuranceDetailAdmin(admin.ModelAdmin):
     list_display = ("therapist", "provider", "out_of_network")
     list_filter = ("out_of_network",)
     search_fields = ("therapist__display_name", "provider__name")
+
+
+class LicenseInline(admin.TabularInline):
+    model = License
+    extra = 0
+    fields = ("license_type", "state", "license_number", "date_issued", "date_expires", "is_active")
+
+
+@admin.register(LicenseType)
+class LicenseTypeAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "sort_order")
+    list_editable = ("category", "sort_order")
+    search_fields = ("name",)
+
+
+@admin.register(License)
+class LicenseAdmin(admin.ModelAdmin):
+    list_display = ("therapist", "license_type", "state", "license_number", "date_expires", "is_active")
+    list_filter = ("license_type", "state", "is_active")
+    search_fields = ("therapist__display_name", "license_number", "license_type__name")
